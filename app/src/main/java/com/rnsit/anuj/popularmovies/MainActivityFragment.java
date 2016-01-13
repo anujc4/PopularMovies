@@ -1,13 +1,18 @@
 package com.rnsit.anuj.popularmovies;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -20,22 +25,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment {
 
-    private PopularMoviesAdapter mPopularMoviesAdapter;
-
-    popularMovies popMovies[] = {
-            new popularMovies(R.drawable.sample_0,"1"),
-            new popularMovies(R.drawable.sample_1,"2"),
-            new popularMovies(R.drawable.sample_2,"3"),
-            new popularMovies(R.drawable.sample_3,"4"),
-            new popularMovies(R.drawable.sample_4,"5")
-    };
+    PopularMoviesAdapter mPopularMoviesAdapter;
 
     //Default Constructor for MainActivityFragment Class
     public MainActivityFragment() {
@@ -43,8 +40,27 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        fetchMoviesTask fetchMoviesTaskOBJ = new fetchMoviesTask();
+        fetchMoviesTaskOBJ.execute();
+    }
+
+    @Override
+    public void onStart() {
+
+        super.onStart();
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -52,19 +68,25 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        mPopularMoviesAdapter = new PopularMoviesAdapter(
-                getActivity(),
-                Arrays.asList(popMovies));
-
         GridView gridView = (GridView) rootView.findViewById(R.id.gridView_Movies);
+        //gridView.setAdapter(mPopularMoviesAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                startActivity(new Intent(getActivity(), MovieDetails.class).putExtra("ClickedMovieItem", position));
+            }
+        });
+        mPopularMoviesAdapter = new PopularMoviesAdapter(getActivity(), R.layout.movies_item_layout, new ArrayList<MovieContents>());
+        fetchMoviesTask fetchMoviesTaskOBJ = new fetchMoviesTask();
+        fetchMoviesTaskOBJ.execute();
         gridView.setAdapter(mPopularMoviesAdapter);
-
-
         return rootView;
     }
 
-    public class fetchMoviesTask extends AsyncTask<Void, Void, String> {
+    public class fetchMoviesTask extends AsyncTask<Void, Void, MovieContents[]> {
         private final String LOG_TAG = fetchMoviesTask.class.getSimpleName();
+        MovieContents[] movieContentses;
+
 
         /**
          * Override this method to perform a computation on a background thread. The
@@ -81,11 +103,13 @@ public class MainActivityFragment extends Fragment {
          * @see #publishProgress
          */
         @Override
-        protected String doInBackground(Void... params) {
+        protected MovieContents[] doInBackground(Void... params) {
 
-            if(params.length == 0){
+            Log.d(LOG_TAG, "INVOKED doInBackground");
+           /* if(params.length == 0){
                 return null;
             }
+            */
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -97,6 +121,7 @@ public class MainActivityFragment extends Fragment {
 
 
             try{
+                Log.d(LOG_TAG, "Building URL");
                 final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
                 final String sortPopularity = "sort_by=popularity.desc";
                 final String sortHighestRated = "sort_by=vote_average.desc";
@@ -112,7 +137,7 @@ public class MainActivityFragment extends Fragment {
                         .appendQueryParameter(API_KEY_PARAM,API_KEY)
                         .build();
                 URL url = new URL(uri.toString());
-                Log.i(LOG_TAG,url.toString());
+                Log.d(LOG_TAG, url.toString());
 
                 // Create the request to TheMovieDB.org, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -145,7 +170,7 @@ public class MainActivityFragment extends Fragment {
             }
             catch (IOException e){
                 Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
+                // If the code didn't successfully get the movie data, there's no point in attemping
                 // to parse it.
                 return null;
 
@@ -162,51 +187,32 @@ public class MainActivityFragment extends Fragment {
                     }
                 }
             }
-            return moviesJsonStr;
-        }
-
-
-
-        @Override
-        protected void onPostExecute(String moviesJsonStr){
-            super.onPostExecute(moviesJsonStr);
-            final String RESULTS = "results";
-            final String POSTER_PATH = "poster_path";
-            final String OVERVIEW = "overview";
-            final String RELEASE_DATE = "release_date";
-            final String ORIGINAL_TITLE = "original_title";
-            final String POPULARITY = "popularity";
-
-            JSONArray jsonArray;
-            JSONObject jsonObject;
-            JSONObject jsonObject1;
             try {
-                jsonObject = new JSONObject(moviesJsonStr);
-                jsonArray = jsonObject.getJSONArray(RESULTS);
-                Log.d(LOG_TAG,"ARRAY Received is "+jsonArray);
-
-
-                int length = jsonArray.length();
-                Log.d(LOG_TAG,"ARRAY Length is "+length);
-
-                for(int i=0; i<length; i++) {
-                    String poster_pathStr;
-                    String overviewStr;
-                    String release_dateStr;
-                    String original_titleStr;
-                    String popularityStr;
-                    jsonObject1 = jsonArray.getJSONObject(i);
-                    poster_pathStr = jsonObject.getString(POSTER_PATH);
-                    overviewStr = jsonObject.getString(OVERVIEW);
-                    release_dateStr = jsonObject.getString(RELEASE_DATE);
-                    original_titleStr = jsonObject.getString(ORIGINAL_TITLE);
-                    popularityStr = jsonObject.getString(POPULARITY);
+                String RESULTS = "results";
+                ArrayList<MovieContents> movieContentsArrayList = new ArrayList<>();
+                JSONObject jsonObject = new JSONObject(moviesJsonStr);
+                JSONArray jsonArray = jsonObject.getJSONArray(RESULTS);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject1 = jsonArray.getJSONObject(i);
+                    MovieContents TEMPmovieContents = new MovieContents(jsonObject1);
+                    movieContentsArrayList.add(TEMPmovieContents);
                 }
+                MovieContents[] ReturnedmovieContents = new MovieContents[movieContentsArrayList.size()];
+                movieContentses = (MovieContents[]) movieContentsArrayList.toArray(ReturnedmovieContents);
+                Log.d(LOG_TAG, String.valueOf(movieContentses));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            return movieContentses;
+        }
 
 
+        @Override
+        protected void onPostExecute(MovieContents[] movieContentses) {
+            //super.onPostExecute(movieContentses);
+            //mPopularMoviesAdapter.clear();
+            for (MovieContents movieContentsTempLoop : movieContentses)
+                mPopularMoviesAdapter.add(movieContentsTempLoop);
         }
     }
 
