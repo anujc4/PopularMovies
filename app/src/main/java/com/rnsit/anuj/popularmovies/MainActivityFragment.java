@@ -1,9 +1,11 @@
 package com.rnsit.anuj.popularmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+
+import com.rnsit.anuj.popularmovies.Adapter.SettingsActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,24 +37,34 @@ import java.util.ArrayList;
 public class MainActivityFragment extends Fragment {
 
     PopularMoviesAdapter mPopularMoviesAdapter;
+    MovieContents[] movieContentses;
 
     //Default Constructor for MainActivityFragment Class
     public MainActivityFragment() {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        updateMovies();
+    }
+
+    private void updateMovies() {
+        fetchMoviesTask fetchMoviesTaskOBJ = new fetchMoviesTask();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String Order = sharedPreferences
+                .getString(getString(R.string.sorting_order_key),
+                        getString(R.string.sorting_order_default_value));
+
+
+        fetchMoviesTaskOBJ.execute(Order);
+    }
+
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        fetchMoviesTask fetchMoviesTaskOBJ = new fetchMoviesTask();
-        fetchMoviesTaskOBJ.execute();
-    }
-
-    @Override
-    public void onStart() {
-
-        super.onStart();
-
     }
 
     @Override
@@ -60,6 +74,15 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_refresh:
+                updateMovies();
+                return true;
+            case R.id.action_settings:
+                Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                startActivity(intent);
+                return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -69,23 +92,51 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         GridView gridView = (GridView) rootView.findViewById(R.id.gridView_Movies);
+        //long ID = mPopularMoviesAdapter.getItemId(1);
         //gridView.setAdapter(mPopularMoviesAdapter);
+
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                startActivity(new Intent(getActivity(), MovieDetails.class).putExtra("ClickedMovieItem", position));
+                //MovieContents movieContents = createMovieContents(mPopularMoviesAdapter);
+                MovieContents TEMPmovieContents = createMovieContents(movieContentses[position]);
+                //movieContents = movieContentses[position];
+
+                //Log.d("Contents", TEMPmovieContents.getORIGINAL_TITLE());
+
+                startActivity(new Intent(getActivity(), MovieDetails.class)
+                        .putExtra("MOVIE_DATA", TEMPmovieContents));
+                mPopularMoviesAdapter.notifyDataSetChanged();
             }
         });
+
         mPopularMoviesAdapter = new PopularMoviesAdapter(getActivity(), R.layout.movies_item_layout, new ArrayList<MovieContents>());
-        fetchMoviesTask fetchMoviesTaskOBJ = new fetchMoviesTask();
-        fetchMoviesTaskOBJ.execute();
+        //fetchMoviesTask fetchMoviesTaskOBJ = new fetchMoviesTask();
+        //fetchMoviesTaskOBJ.execute();
         gridView.setAdapter(mPopularMoviesAdapter);
         return rootView;
     }
 
-    public class fetchMoviesTask extends AsyncTask<Void, Void, MovieContents[]> {
+    private MovieContents createMovieContents(MovieContents movieContentse) {
+
+        MovieContents TEMP_OBJECT = new MovieContents();
+
+        TEMP_OBJECT.setPOSTER_PATH(movieContentse.getPOSTER_PATH());
+        TEMP_OBJECT.setOVERVIEW(movieContentse.getOVERVIEW());
+        TEMP_OBJECT.setRELEASE_DATE(movieContentse.getRELEASE_DATE());
+        TEMP_OBJECT.setORIGINAL_TITLE(movieContentse.getORIGINAL_TITLE());
+        TEMP_OBJECT.setAVERAGE_VOTE(movieContentse.getAVERAGE_VOTE());
+
+        return TEMP_OBJECT;
+
+    }
+
+
+    public class fetchMoviesTask extends AsyncTask<String, Void, MovieContents[]> {
         private final String LOG_TAG = fetchMoviesTask.class.getSimpleName();
-        MovieContents[] movieContentses;
+
 
 
         /**
@@ -103,13 +154,15 @@ public class MainActivityFragment extends Fragment {
          * @see #publishProgress
          */
         @Override
-        protected MovieContents[] doInBackground(Void... params) {
+        protected MovieContents[] doInBackground(String... params) {
 
-            Log.d(LOG_TAG, "INVOKED doInBackground");
-           /* if(params.length == 0){
+            //Log.d(LOG_TAG, "INVOKED doInBackground");
+            if (params.length == 0) {
+                Log.e(LOG_TAG, "Params Returned 0");
                 return null;
             }
-            */
+
+
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -117,13 +170,12 @@ public class MainActivityFragment extends Fragment {
 
             // Will contain the raw JSON response as a string.
             String moviesJsonStr = null;
-            String API_KEY = "de9b3e8199b5086a960146aad5ace061";
 
 
             try{
-                Log.d(LOG_TAG, "Building URL");
+                //Log.d(LOG_TAG, "Building URL");
                 final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
-                final String sortPopularity = "sort_by=popularity.desc";
+                final String sortPopularity = "popularity.desc";
                 final String sortHighestRated = "sort_by=vote_average.desc";
                 final String SORT_ORDER_PARAM = "sort_by";
                 final String API_KEY_PARAM = "api_key";
@@ -133,11 +185,11 @@ public class MainActivityFragment extends Fragment {
                  * http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=[MY API KEY]
                  */
                 Uri uri = Uri.parse(MOVIE_BASE_URL).buildUpon()
-                        .appendQueryParameter(SORT_ORDER_PARAM,sortPopularity)
-                        .appendQueryParameter(API_KEY_PARAM,API_KEY)
+                        .appendQueryParameter(SORT_ORDER_PARAM, params[0])
+                        .appendQueryParameter(API_KEY_PARAM, BuildConfig.API_KEY_PARAM)
                         .build();
                 URL url = new URL(uri.toString());
-                Log.d(LOG_TAG, url.toString());
+                //Log.d(LOG_TAG, url.toString());
 
                 // Create the request to TheMovieDB.org, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -163,10 +215,12 @@ public class MainActivityFragment extends Fragment {
                 }
 
                 if (buffer.length() == 0) {
+                    Log.e(LOG_TAG, "NETWORK ERROR: Nothing Returned from WEB!");
                     // Stream was empty.  No point in parsing.
                     return null;
                 }
                 moviesJsonStr =buffer.toString();
+                //Log.d(LOG_TAG,moviesJsonStr);
             }
             catch (IOException e){
                 Log.e(LOG_TAG, "Error ", e);
@@ -188,18 +242,15 @@ public class MainActivityFragment extends Fragment {
                 }
             }
             try {
-                String RESULTS = "results";
-                ArrayList<MovieContents> movieContentsArrayList = new ArrayList<>();
                 JSONObject jsonObject = new JSONObject(moviesJsonStr);
-                JSONArray jsonArray = jsonObject.getJSONArray(RESULTS);
+                JSONArray jsonArray = jsonObject.getJSONArray("results");
+                movieContentses = new MovieContents[jsonArray.length()];
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject1 = jsonArray.getJSONObject(i);
-                    MovieContents TEMPmovieContents = new MovieContents(jsonObject1);
-                    movieContentsArrayList.add(TEMPmovieContents);
+                    MovieContents movieContentsTempOBJ = new MovieContents(jsonObject1);
+                    movieContentses[i] = movieContentsTempOBJ;
                 }
-                MovieContents[] ReturnedmovieContents = new MovieContents[movieContentsArrayList.size()];
-                movieContentses = (MovieContents[]) movieContentsArrayList.toArray(ReturnedmovieContents);
-                Log.d(LOG_TAG, String.valueOf(movieContentses));
+                //Log.d(LOG_TAG, String.valueOf(movieContentses));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -209,11 +260,13 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(MovieContents[] movieContentses) {
-            //super.onPostExecute(movieContentses);
-            //mPopularMoviesAdapter.clear();
+            super.onPostExecute(movieContentses);
+            mPopularMoviesAdapter.clear();
             for (MovieContents movieContentsTempLoop : movieContentses)
                 mPopularMoviesAdapter.add(movieContentsTempLoop);
         }
+
+
     }
 
 }
