@@ -3,6 +3,7 @@
     package="com.rnsit.anuj.popularmovies">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    
 
     <application
         android:allowBackup="true"
@@ -10,6 +11,10 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        
+        <provider
+            android:authorities="com.rnsit.anuj.popularmovies"
+            android:name="com.rnsit.anuj.popularmovies.data.generated.MovieProvider"/>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -30,7 +35,7 @@
                 android:value="com.rnsit.anuj.popularmovies.MainActivity" />
         </activity>
         <activity
-            android:name=".Adapter.SettingsActivity"
+            android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".MainActivity">
             <meta-data
