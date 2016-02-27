@@ -8,9 +8,12 @@
     <string name="pref_sorting_order_title">sorting_order</string>
     <string name="sorting_order_key">sorting_order</string>
     <string name="sorting_order_default_value">popularity.desc</string>
-    <string name="action_refresh">Refresh</string>
+    <string name="action_favourites">Favourites</string>
     <string name="plot_summary">Plot Summary</string>
     <string name="movie_release">Release Date</string>
+    <string name="action_share">Share</string>
+    <string name="trailers">Trailers</string>
+    <string name="reviews">Reviews</string>
 
 
 </resources>

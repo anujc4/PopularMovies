@@ -1,4 +1,4 @@
-package com.rnsit.anuj.popularmovies;
+package com.rnsit.anuj.popularmovies.Adapter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
+import com.rnsit.anuj.popularmovies.Contents.MovieContents;
+import com.rnsit.anuj.popularmovies.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -15,39 +17,24 @@ import java.util.ArrayList;
 /**
  * Created by anuj on 1/8/2016.
  */
-public class PopularMoviesAdapter extends ArrayAdapter<MovieContents> {
+public class MovieAdapter extends ArrayAdapter<MovieContents> {
 
-    static private final String LOG_TAG = PopularMoviesAdapter.class.getSimpleName();
-    Context context;
+    static private final String LOG_TAG = MovieAdapter.class.getSimpleName();
+    Context mcontext;
     int LayoutID;
     ArrayList<MovieContents> arrayList;
-    /**
-     * Constructor
-     *
-     * @param context            The current context.
-     * @param resource           The resource ID for a layout file containing a layout to use when
-     *                           instantiating views.
-     * @param objects            The objects to represent in the GridView.
-     */
-    public PopularMoviesAdapter(Context context, int resource, ArrayList<MovieContents> objects) {
+
+    public MovieAdapter(Context context, int resource, ArrayList<MovieContents> objects) {
         super(context, resource, objects);
-        this.context = context;
+        this.mcontext = context;
         this.LayoutID = resource;
         this.arrayList = objects;
     }
-
-    /**
-     * @param position
-     * @param convertView
-     * @param parent
-     * @return
-     */
-
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         MoviePoster moviePoster;
         if(convertView == null){
-            LayoutInflater inflater = ((Activity) context).getLayoutInflater();
+            LayoutInflater inflater = ((Activity) mcontext).getLayoutInflater();
             convertView = inflater.inflate(LayoutID, parent, false);
             moviePoster = new MoviePoster();
             moviePoster.imageView = (ImageView) convertView.findViewById(R.id.item_movie_image);
@@ -58,8 +45,10 @@ public class PopularMoviesAdapter extends ArrayAdapter<MovieContents> {
         MovieContents movieContents = arrayList.get(position);
 
 //        Log.d(LOG_TAG,movieContents.POSTER_PATH);
-        Picasso.with(context)
+        Picasso.with(mcontext)
                 .load(movieContents.POSTER_PATH)
+                .placeholder(R.drawable.movielogo)
+                .error(R.drawable.movielogo)
                 .into(moviePoster.imageView);
 
         return convertView;

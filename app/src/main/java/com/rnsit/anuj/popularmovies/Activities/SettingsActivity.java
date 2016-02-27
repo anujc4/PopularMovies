@@ -1,4 +1,4 @@
-package com.rnsit.anuj.popularmovies.Adapter;
+package com.rnsit.anuj.popularmovies.Activities;
 
 
 import android.os.Bundle;

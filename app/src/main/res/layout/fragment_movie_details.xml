@@ -2,12 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.rnsit.anuj.popularmovies.MovieDetailsFragment"
+    tools:context=".Fragments.MovieDetailsFragment"
     tools:showIn="@layout/activity_movie_details">
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <LinearLayout
@@ -20,11 +20,11 @@
                 android:id="@+id/Movie_Title"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:textColor="#FFFFFF"
-                android:textSize="30sp"
-                android:paddingTop="30dp"
                 android:paddingBottom="50dp"
-                android:paddingLeft="5dp" />
+                android:paddingLeft="5dp"
+                android:paddingTop="30dp"
+                android:textColor="#FFFFFF"
+                android:textSize="30sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -39,8 +39,8 @@
 
                 <ImageView
                     android:id="@+id/Movie_Poster"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
             <LinearLayout
@@ -51,9 +51,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="@string/movie_release"
                     android:textColor="@color/darkGrey"
-                    android:textSize="25sp"
-                    android:text="@string/movie_release" />
+                    android:textSize="25sp" />
 
                 <TextView
                     android:id="@+id/Movie_Release_Year"
@@ -68,6 +68,14 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/lightGrey"
                     android:textSize="20sp" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="@dimen/fab_margin"
+                    android:src="@android:drawable/btn_star_big_off" />
             </LinearLayout>
 
 
@@ -76,14 +84,18 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="10dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="10dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#616161"
-                android:text="@string/plot_summary"
                 android:paddingTop="20dp"
+                android:text="@string/plot_summary"
+                android:textColor="#616161"
                 android:textSize="25sp" />
 
             <TextView
@@ -94,8 +106,47 @@
         </LinearLayout>
 
 
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="2dp"
+            android:background="#c0c0c0"
+            android:padding="30dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:text="@string/trailers"
+            android:textSize="30sp" />
+
+
+        <ListView
+            android:id="@+id/view_movie_trailers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="true" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="2dp"
+            android:background="#c0c0c0"
+            android:padding="30dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:text="@string/reviews"
+            android:textSize="30sp" />
+
+        <ListView
+            android:id="@+id/view_movie_reviews"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="true" />
+
     </LinearLayout>
-
-
 </ScrollView>
+
+
 

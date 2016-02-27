@@ -7,4 +7,5 @@
         android:key="@string/sorting_order_key"
         android:title="Sorting Order" />
 
+
 </PreferenceScreen>
