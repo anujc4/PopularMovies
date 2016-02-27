@@ -47,8 +47,8 @@ public class MovieAdapter extends ArrayAdapter<MovieContents> {
 //        Log.d(LOG_TAG,movieContents.POSTER_PATH);
         Picasso.with(mcontext)
                 .load(movieContents.POSTER_PATH)
-                .placeholder(R.drawable.movielogo)
-                .error(R.drawable.movielogo)
+                .placeholder(R.drawable.moviepic)
+                .error(R.drawable.moviepic)
                 .into(moviePoster.imageView);
 
         return convertView;

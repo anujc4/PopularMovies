@@ -90,8 +90,8 @@ public class MovieDetailsFragment extends Fragment {
 
             Picasso.with(context)
                     .load(MOVIE_DATA.POSTER_PATH)
-                    .placeholder(R.drawable.movielogo)
-                    .error(R.drawable.movielogo)
+                    .placeholder(R.drawable.moviepic)
+                    .error(R.drawable.moviepic)
                     .into(MOVIE_POSTER);
             MOVIE_TITLE.setText(MOVIE_DATA.getTITLE());
             MOVIE_OVERVIEW.setText(MOVIE_DATA.getOVERVIEW());
