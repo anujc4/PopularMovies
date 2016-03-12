@@ -24,12 +24,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.rnsit.anuj.popularmovies.Activities.SettingsActivity;
 import com.rnsit.anuj.popularmovies.Adapter.MovieAdapter;
 import com.rnsit.anuj.popularmovies.BuildConfig;
 import com.rnsit.anuj.popularmovies.Contents.MovieContents;
-import com.rnsit.anuj.popularmovies.Activities.MovieDetails;
 import com.rnsit.anuj.popularmovies.R;
-import com.rnsit.anuj.popularmovies.Activities.SettingsActivity;
 import com.rnsit.anuj.popularmovies.data.MovieColumns;
 import com.rnsit.anuj.popularmovies.data.MovieProvider;
 
@@ -41,8 +40,10 @@ import java.util.ArrayList;
 
 public class MainActivityFragment extends Fragment {
 
+
     public MovieAdapter mPopularMovieAdapter;
     public MovieContents[] movieContentsArray;
+    private int mPosition = GridView.INVALID_POSITION;
     private String LOG_TAG = MainActivityFragment.class.getSimpleName();
 
     public MainActivityFragment() {
@@ -149,7 +150,6 @@ public class MainActivityFragment extends Fragment {
         }
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -213,10 +213,15 @@ public class MainActivityFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                MovieContents TEMPmovieContents = createMovieContents(movieContentsArray[position]);
+//                startActivity(new Intent(getActivity(), MovieDetails.class)
+//                        .putExtra("MOVIE_DATA", TEMPmovieContents));
+//                mPopularMovieAdapter.notifyDataSetChanged();
+                Bundle bundle = new Bundle();
                 MovieContents TEMPmovieContents = createMovieContents(movieContentsArray[position]);
-                startActivity(new Intent(getActivity(), MovieDetails.class)
-                        .putExtra("MOVIE_DATA", TEMPmovieContents));
-                mPopularMovieAdapter.notifyDataSetChanged();
+                bundle.putParcelable("MOVIE_DATA", TEMPmovieContents);
+                ((Callback) getActivity()).onItemSelected(bundle);
+                mPosition = position;
             }
         });
         mPopularMovieAdapter = new MovieAdapter(getActivity(), R.layout.movies_item_layout, new ArrayList<MovieContents>());
@@ -271,5 +276,9 @@ public class MainActivityFragment extends Fragment {
         }
         cursor.close();
 
+    }
+
+    public interface Callback {
+        void onItemSelected(Bundle bundle);
     }
 }

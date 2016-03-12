@@ -11,8 +11,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -54,6 +52,7 @@ public class MovieDetailsFragment extends Fragment {
 
     public final String VIDEO_URL = "https://www.youtube.com/watch?v=";
     final String LOG_TAG = MovieDetails.class.getSimpleName();
+    public String VIDEO_TRAILER_ENDPOINT;
     MovieContents MOVIE_DATA;
     ReviewContents[] REVIEW_DATA;
     VideoContents[] VIDEO_DATA;
@@ -62,7 +61,9 @@ public class MovieDetailsFragment extends Fragment {
     Context context = getActivity();
 
     public MovieDetailsFragment() {
+        setHasOptionsMenu(true);
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -73,15 +74,18 @@ public class MovieDetailsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.fragment_movie_details, container, false);
-        Intent intent;
-        intent = getActivity().getIntent();
+//        Intent intent;
+//        intent = getActivity().getIntent();
+        Bundle bundle = getArguments();
+        updateView(bundle, rootView);
+        return rootView;
+    }
 
-
-        if (intent != null) {
-
-            MOVIE_DATA = intent.getExtras().getParcelable("MOVIE_DATA");
+    void updateView(Bundle bundle, View rootView) {
+        if (bundle != null) {
+            MOVIE_DATA = bundle.getParcelable("MOVIE_DATA");
+            //MOVIE_DATA = bundle.getExtras().getParcelable("MOVIE_DATA");
             TextView MOVIE_TITLE = (TextView) rootView.findViewById(R.id.Movie_Title);
             TextView MOVIE_OVERVIEW = (TextView) rootView.findViewById(R.id.Movie_Overview);
             ImageView MOVIE_POSTER = (ImageView) rootView.findViewById(R.id.Movie_Poster);
@@ -216,10 +220,13 @@ public class MovieDetailsFragment extends Fragment {
                                     VIDEO_DATA = new VideoContents[length];
                                     for (int i = 0; i < length; i++) {
                                         JSONObject temp = RESULTS.getJSONObject(i);
+
                                         VideoContents VCTemp = new VideoContents(temp);
                                         VIDEO_DATA[i] = VCTemp;
                                         mVideoAdapter.add(VCTemp);
                                     }
+                                    VIDEO_TRAILER_ENDPOINT = VIDEO_DATA[0].getKEY();
+                                    Log.e(LOG_TAG, "2" + VIDEO_TRAILER_ENDPOINT);
                                 } catch (JSONException e) {
                                     Log.e("Videos", e.getMessage());
                                 }
@@ -228,6 +235,7 @@ public class MovieDetailsFragment extends Fragment {
                         new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
+
                                 Toast.makeText(context, "Some Error Occoured While Fetching Reviews. Please Try Again", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -243,6 +251,8 @@ public class MovieDetailsFragment extends Fragment {
                 if (!cursor.moveToFirst()) {
                     Log.e(LOG_TAG, "Empty Cursor Returned For Videos");
                 } else {
+                    VIDEO_TRAILER_ENDPOINT = cursor.getString(cursor.getColumnIndex(VideoColumns.KEY));
+                    Log.e(LOG_TAG, "3" + VIDEO_TRAILER_ENDPOINT);
 //                    Log.d(LOG_TAG, "Loading Video Data From Cursor");
                     do {
                         String KEY = cursor.getString(cursor.getColumnIndex(VideoColumns.KEY));
@@ -256,7 +266,7 @@ public class MovieDetailsFragment extends Fragment {
 
 
         } else {
-            Toast.makeText(context, "Nothing Received By Intent. Please Try Again.", Toast.LENGTH_SHORT).show();
+            Log.e(LOG_TAG, "Bundle passed was null!!!!!");
         }
 
 
@@ -305,13 +315,25 @@ public class MovieDetailsFragment extends Fragment {
                 cursor.close();
             }
         });
-        return rootView;
+
+        FloatingActionButton button = (FloatingActionButton) rootView.findViewById(R.id.fab_share);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT, VIDEO_URL + VIDEO_TRAILER_ENDPOINT);
+                startActivity(Intent.createChooser(intent, "Share Trailer"));
+            }
+        });
+
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_movie_details_fragment, menu);
 
+    private void createShareForecastIntent() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TEXT, VIDEO_URL + VIDEO_TRAILER_ENDPOINT);
     }
 }
