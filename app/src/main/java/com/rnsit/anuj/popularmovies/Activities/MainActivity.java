@@ -19,7 +19,6 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private static final String MOVIE_DETAIL_FRAGMENT_TAG = "DETAIL_TAG";
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private boolean mTwoPane;
-    private String mSortBy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +56,24 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String sortBy = Utility.getPreferredSortByOption(this);
+        if (sortBy != null) {
+            MainActivityFragment fragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+            if (fragment != null) {
+                fragment.updateMovies(sortBy);
+            } else {
+                if (mTwoPane) {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_details, new MovieDetailsFragment(), MOVIE_DETAIL_FRAGMENT_TAG)
+                            .commit();
+                }
+            }
+        }
     }
 
     @Override

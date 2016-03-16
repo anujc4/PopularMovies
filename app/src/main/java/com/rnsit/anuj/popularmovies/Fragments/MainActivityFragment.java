@@ -49,16 +49,16 @@ public class MainActivityFragment extends Fragment {
     public MainActivityFragment() {
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        //        Log.d("onStart", "ON START EXECUTED");
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String Order = sharedPreferences
-                .getString(getString(R.string.sorting_order_key),
-                        getString(R.string.sorting_order_default_value));
-        updateMovies(Order);
-    }
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//        //        Log.d("onStart", "ON START EXECUTED");
+//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+//        String Order = sharedPreferences
+//                .getString(getString(R.string.sorting_order_key),
+//                        getString(R.string.sorting_order_default_value));
+//        updateMovies(Order);
+//    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -66,7 +66,7 @@ public class MainActivityFragment extends Fragment {
         outState.putParcelableArray("stored_array", movieContentsArray);
     }
 
-    private void updateMovies(String Order) {
+    public void updateMovies(String Order) {
 //        Log.d("UPDATE", "UPDATE MOVIES EXECUTED");
         final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
         final String SORT_ORDER_PARAM = "sort_by";
@@ -84,7 +84,7 @@ public class MainActivityFragment extends Fragment {
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
-
+                                    Log.d(LOG_TAG,"Request successful.");
                                     mPopularMovieAdapter.clear();
                                     JSONArray RESULTS = response.getJSONArray("results");
                                     movieContentsArray = new MovieContents[RESULTS.length()];
@@ -120,6 +120,7 @@ public class MainActivityFragment extends Fragment {
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
+                                    Log.d(LOG_TAG,"Request successful.");
                                     mPopularMovieAdapter.clear();
                                     JSONArray RESULTS = response.getJSONArray("results");
                                     movieContentsArray = new MovieContents[RESULTS.length()];
@@ -154,11 +155,7 @@ public class MainActivityFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        if (savedInstanceState != null) {
-            movieContentsArray = (MovieContents[]) savedInstanceState.getParcelableArray("stored_array");
-//            Log.d
-// (LOG_TAG,movieContentsArray.toString());
-        }
+
     }
 
     @Override
@@ -207,16 +204,12 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        super.onCreateView(inflater,container,savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         GridView gridView = (GridView) rootView.findViewById(R.id.gridView_Movies);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                MovieContents TEMPmovieContents = createMovieContents(movieContentsArray[position]);
-//                startActivity(new Intent(getActivity(), MovieDetails.class)
-//                        .putExtra("MOVIE_DATA", TEMPmovieContents));
-//                mPopularMovieAdapter.notifyDataSetChanged();
                 Bundle bundle = new Bundle();
                 MovieContents TEMPmovieContents = createMovieContents(movieContentsArray[position]);
                 bundle.putParcelable("MOVIE_DATA", TEMPmovieContents);
@@ -226,6 +219,22 @@ public class MainActivityFragment extends Fragment {
         });
         mPopularMovieAdapter = new MovieAdapter(getActivity(), R.layout.movies_item_layout, new ArrayList<MovieContents>());
         gridView.setAdapter(mPopularMovieAdapter);
+
+        if(savedInstanceState == null) {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String Order = sharedPreferences
+                    .getString(getString(R.string.sorting_order_key),
+                            getString(R.string.sorting_order_default_value));
+            updateMovies(Order);
+        }
+        else
+        {
+            Log.d(LOG_TAG,"Creating from Saved Instance");
+            movieContentsArray = (MovieContents[]) savedInstanceState.getParcelableArray("stored_array");
+            for (MovieContents temp:movieContentsArray)
+                mPopularMovieAdapter.add(temp);
+        }
+
         return rootView;
     }
 
